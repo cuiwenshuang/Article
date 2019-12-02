@@ -3,46 +3,92 @@
 # @Author : cuiws 
 # @File : ArticleSpiderBaidu.py
 
-import requests,os
+import requests
 from bs4 import BeautifulSoup
-from docx import Document
-from datetime import datetime
-from urllib.request import quote
-from docx.shared import Inches
-from PIL import Image
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from RedisUtil import RedisUtil
-rs = RedisUtil().get_redis()
-def baiduRequest():
-    for i in range(1,11):
-        headers={
-            'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'zh-CN,zh;q=0.9',
-            'Connection': 'keep-alive',
-            'Host': 'www.baidu.com',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36',
-        }
-        req_url="https://www.baidu.com/s?ie=utf-8&cl=1&medium=0&rtt=1&bsst=1&tn=news&rsv_sug3=3&rsv_sug4=191&rsv_sug1=3&f=3&rsp=0&rsv_dl=news_b_pn&inputT=953&x_bfe_rqs=03E80&x_bfe_tjscore=0.487742&tngroupname=organic_news&pn=10&word=lol云顶之弈"
-        resp = requests.get(req_url,headers=headers)
-        resp.encoding='utf-8'
-        html = resp.text
-        soup = BeautifulSoup(html, 'lxml')
-        arr = soup.find_all('div',{"class":"result"})
-        for ele in arr:
-            title_info = ele.find('a',{'target':'_blank'})
-            title = str(title_info.text).strip()
-            url = str(title_info['href'])
-            domain ="%s//%s"% (url.split("//")[0],url.split("//")[1].split("/")[0])
-            author_info = ele.find('p',{'class':'c-author'})
-            website = str(author_info.text).strip().split("\xa0")[0]
-            print(website)
-            print(domain)
-            print("%s---%s" % (website, domain))
-            print("========================")
-            if domain not in rs.keys():
-                rs.set(domain.split("//")[1],website)
+import BaiduBJHSpider, Spider18183, Gao7NewSpider, QQNewSpider
 
+rs = RedisUtil().get_redis()
+website_info = [
+    'baijiahao.baidu.com',
+    'new.qq.com',
+    'news.gao7.com',
+    'www.18183.com'
+]
+
+
+def web_exist(url):
+    res = False
+    for i in website_info:
+        if str(url).__contains__(i):
+            res = True
+            break
+    return res
+
+
+def baiduRequest():
+    word_arr = ['LOL', 'LOL云顶']
+    for word in word_arr:
+        max = 10
+        current = 0
+        # article_arr = set()
+        is_over = False
+
+        for i in range(1, 20):
+            if is_over:
+                break
+            headers = {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept-Language': 'zh-CN,zh;q=0.9',
+                'Connection': 'keep-alive',
+                'Host': 'www.baidu.com',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36',
+            }
+            req_url = "https://www.baidu.com/s?ie=utf-8&cl=1&medium=0&rtt=%d&bsst=1&tn=news&rsv_sug3=3&rsv_sug4=191&rsv_sug1=3&f=3&rsp=0&rsv_dl=news_b_pn&inputT=953&x_bfe_rqs=03E80&x_bfe_tjscore=0.487742&tngroupname=organic_news&pn=10&word=%s" % (
+            i, word)
+            resp = requests.get(req_url, headers=headers)
+            resp.encoding = 'utf-8'
+            html = resp.text
+            soup = BeautifulSoup(html, 'lxml')
+            arr = soup.find_all('div', {"class": "result"})
+            for ele in arr:
+                flag = False
+                title_info = ele.find('a', {'target': '_blank'})
+                url = str(title_info['href'])
+                if url.__contains__('baijiahao.baidu.com'):
+                    flag = BaiduBJHSpider.run(url)
+                elif url.__contains__('new.qq.com'):
+                    flag = QQNewSpider.run(url)
+                elif url.__contains__('news.gao7.com'):
+                    flag = Gao7NewSpider.run(url)
+                elif url.__contains__('www.18183.com'):
+                    flag = Spider18183.run(url)
+                else:
+                    print("无法识别的网站类型,跳过")
+                if flag:
+                    current += 1
+                    if current >= max:
+                        is_over = True
+                        current = 0
+                        break
+                # if web_exist(url):
+                #     if article_arr.__len__()>=max:
+                #         is_over=True
+                #         break
+                #     article_arr.add(url)
+        # for url in article_arr:
+        #     print(url)
+        #     if url.__contains__('baijiahao.baidu.com'):
+        #         BaiduBJHSpider.run(url)
+        #     elif url.__contains__('new.qq.com'):
+        #         QQNewSpider.run(url)
+        #     elif url.__contains__('news.gao7.com'):
+        #         Gao7NewSpider.run(url)
+        #     elif url.__contains__('www.18183.com'):
+        #         Spider18183.run(url)
+        #     else:
+        #         print("无法识别的网站类型")
 
 
 if __name__ == '__main__':

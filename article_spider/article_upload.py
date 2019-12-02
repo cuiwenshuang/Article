@@ -109,8 +109,15 @@ def load_local_file(filename):
     submit_file(title,content)
 
 
+def demo():
+    url = 'http://t12.baidu.com/it/u=1610401883,3702459308&fm=173&app=25&f=JPEG?w=464&h=270&s=BE0360864E5614D6158677820300808E'
+    resp = requests.get(url)
+    print(resp.headers)
+
+
 
 if __name__ == '__main__':
-    arr = all_files()
-    load_local_file(arr[0])
+    demo()
+    # arr = all_files()
+    # load_local_file(arr[0])
 
