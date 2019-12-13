@@ -23,6 +23,15 @@ class RequestUtil():
         return header
 
 
+def write_log(line):
+    file_name = "G:/code/Article/logs/%s.log"%str(dt.now().date())
+    with open(file_name,'a+',encoding='utf-8') as f:
+        f.write("[%s]%s\n"%(str(dt.now().strftime('%Y-%m-%d %H:%M:%S')),line))
+        print("[%s]%s"%(str(dt.now().strftime('%Y-%m-%d %H:%M:%S')),line))
+
+if __name__ == '__main__':
+    write_log('test')
+
 def tag_filter(content):
     tag_list = ['strong']
     for tag in tag_list:
@@ -86,7 +95,7 @@ def convert_doc(content_list,title):
         else:
             document.add_paragraph(d)
     document.save(filename)
-    print("file[%s] write done!!!" % filename)
+    write_log("file[%s] write done!!!" % filename)
 
 def format_p(p_arr,title):
     content_list = []
@@ -95,7 +104,7 @@ def format_p(p_arr,title):
             pic_url = str(p.find('img')['src'])
             if not pic_url.startswith("http"):
                pic_url = "http:"+pic_url
-            pic_name = "".join(random.sample('zyxwvutsrqponmlkjihgfedcba',20))+ ".jpg"
+            pic_name = "".join(random.sample('zyxwvutsrqponmlkjihgfedcba',20))+ ".png"
             # 上级目录
             upper = os.path.abspath(os.path.join(os.getcwd(), ".."))
             source = os.path.join(upper, 'source').replace("\\", "/")
@@ -112,7 +121,7 @@ def format_p(p_arr,title):
             content = str(p.text).strip()
         content = tag_filter(str(content))
         content = content_filter(content)
-        print(content)
+        write_log(content)
         if content!='':
             content_list.append(content)
     return content_list

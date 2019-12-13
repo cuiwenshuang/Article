@@ -3,6 +3,8 @@
 # @Author : cuiws 
 # @File : Republish.py
 #发布文章
+#半自动版本 自动导入后 手动选封面 发布
+
 #目前因为头条的缓存机制 导致多图模式的文章无法上传 只能发表无封面文章
 #问题:
 #   1.导入文件方式在多图模式选择图片的时候提示未插入图片 这时需要手动插一张图才能选择文件中的图片做封面
@@ -112,7 +114,7 @@ def ParseCookiestr(cookie_str):
 
 
 def main():
-    img_count = 5
+
     # 创建一个参数对象，用来控制谷歌浏览器以无界面模式打开
     chrome_options = Options()
     # chrome_options.add_argument('--headless')
@@ -120,14 +122,11 @@ def main():
 
     driver = webdriver.Chrome('util/chromedriver.exe',chrome_options=chrome_options)
 
-    # 设置浏览器宽高
-    # driver.set_window_size(width=2000, height=3000)
+
 
     wait = WebDriverWait(driver, 10)
 
-    # cookie_str = 'UM_distinctid=16c0402604a1f0-0f820b01034022-c343162-1fa400-16c0402604b5d1; odin_tt=3b76c8e9bbddd34e275c4dfa2c4677e82d43ccff12fc57a0105be98b189e6196ff1d9d2d11d103d5a0e3799c56244729cad2e78d12b3dfd67a8f3f467d2df1f8; __tea_sdk__ssid=undefined; _ga=GA1.2.256203656.1563446758; _ba=BA0.2-20190724-5110e-5XvtV2mAPI1KM9RHd0Pm; uuid="w:3cf5ef6953a54c1abfae368f8ee32ea4"; tt_webid=6763888485834900999; msh=OFxHiBvU3TYrG8D9XiPfUyZ6cMg; sso_auth_status=b76f932bdde34d4c206005f63c03d5ad; sso_uid_tt=9641895778724bd97248234c41e0f7a5; toutiao_sso_user=7325fd001883c3110fc8b184bff3650b; passport_auth_status=65f02226f9b8d5f623937a610abba11f%2C91d1135ffcb79aed6ae131de5c429ad1; sid_guard=46d80c45af5886f52dd035beaa3ac593%7C1574844799%7C5184000%7CSun%2C+26-Jan-2020+08%3A53%3A19+GMT; sid_tt=46d80c45af5886f52dd035beaa3ac593; sessionid=46d80c45af5886f52dd035beaa3ac593; uid_tt=713d51c736c00511d4379b8585de4f42f42f791a523e85068d085a4b93814e58; SLARDAR_WEB_ID=0f8b0b22-a6e0-467f-8db3-77a5ef45f3f8; _mp_auth_key=b76f932bdde34d4c206005f63c03d5ad; _mp_auth_key=b76f932bdde34d4c206005f63c03d5ad'
-    # cookie = ParseCookiestr(cookie_str)
-    # driver.add_cookie(cookie)
+
 
     driver.get("https://sso.toutiao.com/")
 
@@ -147,7 +146,6 @@ def main():
 
     text_box.send_keys(phone)
 
-    # time.sleep(random.uniform(2, 3))
 
     try:
         action = ActionChains(driver)
@@ -203,8 +201,6 @@ def main():
         # 获取滑动按钮
         button = wait.until(
             expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="captcha_container"]/div/div[3]/div[2]/div')))
-        # button = wait.until(
-        #     expected_conditions.presence_of_element_located((By.XPATH, '//div[@class="validate-drag-button"]/img')))
 
         action = ActionChains(driver)
         try:
@@ -231,8 +227,6 @@ def main():
 
         time.sleep(30)
 
-
-
         #导入文件
         file_list = load_file()
         for file in file_list:
@@ -255,7 +249,14 @@ def main():
             title = str(file).split("/")[-1].replace(".doc","")
             title_area = wait.until(expected_conditions.presence_of_element_located((By.XPATH,"//div[@class='editor-title autofit-textarea-wrapper']/textarea")))
             print(title_area)
-            title_area.clear()
+
+            title_area.send_keys(Keys.CONTROL,'a')#全选
+            title_area.send_keys(Keys.DELETE)#删除
+
+            for i in range(30):
+                title_area.send_keys(Keys.DELETE)#进格删除
+                title_area.send_keys(Keys.BACKSPACE)#退格删除
+                print("清空标题")
             title_area.send_keys(title)
             time.sleep(1)
             #设置封面 无图选择无图模式 小于3张选择单图 3张或以上选择三图
@@ -263,45 +264,10 @@ def main():
             print("拖到底部")
 
             driver.find_element_by_tag_name('body').send_keys(Keys.END)
-            time.sleep(1)
+            time.sleep(60)
 
-            print("无图模式")
-            time.sleep(3)
-            check = wait.until(expected_conditions.presence_of_element_located(
-                (By.XPATH, "//div[@class='pgc-radio article-cover-radio-group']/label[3]/div/input")))
-            time.sleep(2)
-            print(check)
-            # if img_count==0:
-            #     check = wait.until(expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='graphic']/div/div[2]/div/div[2]/div[1]/div/div[2]/div/div[1]/label[3]/div/input")))
-            # elif img_count<3:
-            #     check = wait.until(expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='graphic']/div/div[2]/div/div[2]/div[1]/div/div[2]/div/div[1]/label[1]/div/input")))
-            # else:
-            #     check = wait.until(expected_conditions.presence_of_element_located((By.XPATH,"//*[@id='graphic']/div/div[2]/div/div[2]/div[1]/div/div[2]/div/div[1]/label[2]/div/input")))
-            check.click()
-            time.sleep(2)
-
-            republic = wait.until(expected_conditions.presence_of_element_located((By.XPATH,"//button[@id='publish']")))
-            print("发布 %s"%republic)
-            republic.click()
-            toutiao_util.write_log("file[%s] 发布完成"%file)
-
-            alert = wait.until(expected_conditions.presence_of_element_located((By.XPATH,"//div[@class='tui2-modal-body']")))
-            if alert!=None:
-                # not_check = wait.until(expected_conditions.presence_of_element_located((By.XPATH,"//button[@class='tui2-btn tui2-btn-size-default tui2-btn-default']")))
-                check = wait.until(expected_conditions.presence_of_element_located((By.XPATH, "//button[@class='tui2-btn tui2-btn-size-default tui2-btn-primary']")))
-                check.click()
-                time.sleep(2)
-                #切换到新标签页
-                current_windows = driver.current_window_handle
-                all_handles = driver.window_handles
-                #关闭原有的标签页
-                driver.close()
-                for handle in all_handles:
-                    if handle != current_windows:  # 判断条件
-                        driver.switch_to.window(handle)
-                        break
-            time.sleep(5)
     finally:
+        print("已结束")
         time.sleep(10000)
         driver.close()
 

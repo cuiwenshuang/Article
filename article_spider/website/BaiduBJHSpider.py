@@ -21,7 +21,7 @@ def run(url):
         }
         resp = requests.get(url, headers=headers)
         resp.encoding = requests.utils.get_encoding_from_headers(resp.headers)
-        # resp.encoding = requests.utils.get_encodings_from_content(resp.text)
+
         html = resp.text
         soup = BeautifulSoup(html, 'lxml')
         title = str(soup.find('div', {'class': 'article-title'}).text).strip()  # 标题
@@ -33,7 +33,7 @@ def run(url):
                 pic_url = str(con.find('img')['src'])
                 if not pic_url.startswith("http"):
                     pic_url = "http:" + pic_url
-                pic_name = "".join(random.sample('zyxwvutsrqponmlkjihgfedcba', 20)) + ".jpg"
+                pic_name = "".join(random.sample('zyxwvutsrqponmlkjihgfedcba', 20)) + ".png"
 
                 # 上级目录
                 upper = os.path.abspath(os.path.join(os.getcwd(), ".."))
@@ -54,11 +54,12 @@ def run(url):
                 else:
                     continue
             content = toutiao_util.tag_filter(content)
+            toutiao_util.write_log(content)
             content_list.append(content)
         toutiao_util.convert_doc(content_list, title)
         return True
     except:
-        print("百家号url[%s] 抓取失败 跳过" % url)
+        toutiao_util.write_log("百家号url[%s] 抓取失败 跳过" % url)
         return False
 
 

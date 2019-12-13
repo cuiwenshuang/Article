@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from RedisUtil import RedisUtil
 import BaiduBJHSpider, Spider18183, Gao7NewSpider, QQNewSpider
-
+import toutiao_util
 rs = RedisUtil().get_redis()
 website_info = [
     'baijiahao.baidu.com',
@@ -65,30 +65,13 @@ def baiduRequest():
                 elif url.__contains__('www.18183.com'):
                     flag = Spider18183.run(url)
                 else:
-                    print("无法识别的网站类型,跳过")
+                    toutiao_util.write_log("无法识别的网站类型[%s],跳过"%url)
                 if flag:
                     current += 1
                     if current >= max:
                         is_over = True
                         current = 0
                         break
-                # if web_exist(url):
-                #     if article_arr.__len__()>=max:
-                #         is_over=True
-                #         break
-                #     article_arr.add(url)
-        # for url in article_arr:
-        #     print(url)
-        #     if url.__contains__('baijiahao.baidu.com'):
-        #         BaiduBJHSpider.run(url)
-        #     elif url.__contains__('new.qq.com'):
-        #         QQNewSpider.run(url)
-        #     elif url.__contains__('news.gao7.com'):
-        #         Gao7NewSpider.run(url)
-        #     elif url.__contains__('www.18183.com'):
-        #         Spider18183.run(url)
-        #     else:
-        #         print("无法识别的网站类型")
 
 
 if __name__ == '__main__':
